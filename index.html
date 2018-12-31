@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <title>IVP Sentiment Analysis</title>
+      <meta name="description" content="">
+      <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+      <meta name="robots" content="all,follow">
+      <!-- Bootstrap CSS-->
+      <link rel="stylesheet" href="vendor/bootstrap/css/bootstrap.min.css">
+      <!-- ui grid CSS-->
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-grid/3.1.1/ui-grid.css">
+      <link rel = "stylesheet" href = "https://rawgit.com/utatti/perfect-scrollbar/master/css/perfect-scrollbar.css">
+      <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.6.7/angular.min.js"></script>
+      <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.7.0/angular.js"></script>
+      <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.7.0/angular-touch.js"></script>
+      <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.7.0/angular-animate.js"></script>
+      <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.7.0/angular-aria.js"></script>
+      <script src="http://ui-grid.info/docs/grunt-scripts/csv.js"></script>
+      <script src="http://ui-grid.info/docs/grunt-scripts/pdfmake.js"></script>
+      <script src="http://ui-grid.info/docs/grunt-scripts/vfs_fonts.js"></script>
+      <script src="http://ui-grid.info/docs/grunt-scripts/lodash.min.js"></script>
+      <script src="http://ui-grid.info/docs/grunt-scripts/jszip.min.js"></script>
+      <script src="http://ui-grid.info/docs/grunt-scripts/excel-builder.dist.js"></script>
+      <!-- ui grid JS-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.6/angular.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-grid/3.1.1/ui-grid.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.9.1/underscore-min.js"></script>
+      <script src = "https://rawgit.com/utatti/perfect-scrollbar/master/dist/perfect-scrollbar.js"> </script>
+      <!-- Font Awesome CSS-->
+      <link rel="stylesheet" href="vendor/font-awesome/css/font-awesome.min.css">
+      <!-- Fontastic Custom icon font-->
+      <link rel="stylesheet" href="css/fontastic.css">
+      <!-- Google fonts - Poppins -->
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins:300,400,700">
+      <!-- theme stylesheet-->
+      <link rel="stylesheet" href="css/style.default.css" id="theme-stylesheet">    
+      <!-- Favicon-->
+      <link rel="shortcut icon" href="img/ivp.png">
+
+   </head>
+   <body ng-app="app" ng-controller="MainCtrl">
+      <div class="page" >
+         <div class="page-content d-flex align-items-stretch">
+
+            <div class="content-inner">
+               <!-- Page Header-->
+               <header class="page-header">
+                  <div class="container-fluid">
+                     <h2 class="no-margin-bottom">Sentiment Analysis</h2>
+                  </div>
+               </header>
+               <!-- Dashboard Header Section    -->
+               <section class="dashboard-header">
+                  <div class="container-fluid">
+                     <div class="row" style="padding-top: 60px;">
+                        <!-- Sentiment Grid -->
+                        <div class="sentiGrid col-lg-7 col-12">
+                              <div class="card-header">
+                                 <h6 class="h6">Latest Score</h6>
+                              </div>
+                              <div class="sentimentGrid card">
+                                 <div id="grid1" ui-grid="gridOptions" class="grid"></div>
+                              </div>
+                           </div>
+                        <div style="padding-right:0px;" class="linechartCol col-lg-5 col-12">
+                           <div class="bar-chart-example card">
+                              <div class="card-header d-flex justify-content-between">
+                                 <span><h6  class="h6">v/s Price Over Time</h6> </span>
+                                 <span ng-show="showPC" style="float:right">Pearson Correlation:     {{pearsonCorrelationCoeff | number}}</span>     
+                                               
+                              </div>
+                              <div class="card-body">
+                                 <canvas id="barChartExample"></canvas>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </section>
+               <section class="updates no-padding-top">
+                  <div class="container-fluid">
+                     <div class="row">
+
+                        <div class="col-lg-3">
+                              <div class="recent-updates card">
+                                 <div class="card-header">
+                                    <h6 class="h6">Transcript</h6>
+                                 </div>
+                                 <div class="card-body no-padding">
+                                   <div ng-repeat="trans in transcriptTemp" class="item d-flex justify-content-between" ng-click="loadQnA(trans.TranscriptId,trans.GFog)"  ng-class="{active: checkStatus('transcript',trans.TranscriptId)}">
+                                       <div class="info d-flex">
+                                        <div class="fa"><a target="_blank" ng-href="{{trans.href}}"><i ng-class="{active: checkStatus('transcript',trans.TranscriptId)}" data-toggle="tooltip" title="Open full transcript" class="fa-external-link"></i></a></div>
+                                         <div class="title">
+                                             <h6 id="{{trans.TranscriptId}}" >{{trans.TranscriptId}}</h6>
+                                          </div>
+                                         </div>
+                                       <div data-toggle="tooltip" title="G-Fog Index" ng-class="{active: checkStatus('transcript',trans.TranscriptId)}" class="date text-right"><small>{{trans.GFog}}</small></div>
+                                       </div>
+                                 </div>
+                              </div>
+                            </div>
+                              <div style="padding-right:0px;" class="col-lg-9">
+                              <div class="daily-feeds card">
+                                 <div class="card-header d-flex justify-content-between">
+                                    <span><h6 style="color: #089de3;" class="h6">QnA Language Complexity</h6></span>                                    
+                                    <span data-toggle="tooltip" title="{{selectedCompanyGFogIndex}}" >Average G-Fog: {{selectedCompanyGFogIndex | number}}</span>   
+                                   
+                                 </div>
+                                 <div class="card-body no-padding">
+                                   <div ng-repeat="qna in tempArr" class="item clearfix">
+                                      <div class="feed d-flex justify-content-between">
+                                         <div class="feed-body d-flex justify-content-between">
+                                            <div class="content">
+                                               <div>
+                                                  <h5 style="color:#D16405">{{qna.QuestionedBy}}</h5>
+                                                  <span>{{qna.Questioner_Organization}}</span>
+                                               </div>
+                                               <div class="quoteLeft has-shadow"> <small>{{qna.Question}}</small></div>
+                                            </div>
+                                         </div>
+                                         <div class="CTAs pull-right" title="{{qna.GFogIndex}}"><a class="btn btn-xs btn-secondary">{{qna.GFogIndex | number}}</a></div>
+                                      </div>
+                                      <div class="feed-body d-flex justify-content-between" style="margin-top:15px;">
+                                         <div class="content">
+                                            <div style="float:right;">
+                                               <h5 style="color:#b0b93b">{{qna.AnsweredBy}}</h5>
+                                               <span style="float:right">{{qna.Answerer_Organization}}</span>
+                                            </div>
+                                            <div class="quoteRight has-shadow"> <small>{{qna.Answer}}</small></div>
+                                         </div>
+                                      </div>
+                                   </div>
+                                 </div>
+                              </div>
+
+                        </div>
+                     </div>
+                  </div>
+               </section>
+            </div>
+         </div>
+      </div>
+      <!-- JavaScript files-->
+      <script src="vendor/jquery/jquery.min.js"></script>
+      <script src="vendor/popper.js/umd/popper.min.js"> </script>
+      <script src="vendor/bootstrap/js/bootstrap.min.js"></script>
+      <script src="vendor/jquery.cookie/jquery.cookie.js"> </script>
+      <script src="vendor/chart.js/Chart.min.js"></script>
+      <script src="vendor/jquery-validation/jquery.validate.min.js"></script>
+      <!-- <script src="js/charts-home.js"></script> -->
+      <!-- <script src="vendor/chart.js/Chart.min.js"></script> -->
+      <!-- <script src="js/charts-custom.js"></script -->
+      <!-- Main File-->
+      <script src="js/front.js"></script>
+      <script src="js/sentiment.js"></script>
+      
+   </body>
+</html>
